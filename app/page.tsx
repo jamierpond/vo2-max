@@ -50,7 +50,7 @@ function getSnowflakePath(
     stroke="#2196F3" stroke-width="${lineWidth * 0.2}" fill="none"/>`;
 }
 
-export function progressImageSvgString(
+function progressImageSvgString(
   amount: number,
   width: number,
   height: number,
