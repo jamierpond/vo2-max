@@ -111,29 +111,30 @@ export default function Home() {
     }
   }, [frameCount, isHighIntensity]);
 
-  const image = progressImageSvgString(progress, 200, 200, isHighIntensity);
+  const image = progressImageSvgString(progress, 250, 250, isHighIntensity);
 
   const duration = isHighIntensity ? HIGH_INTENSITY_DURATION_SECONDS : LOW_INTENSITY_DURATION_SECONDS;
-  const timeRemainingString = `Time Remaining: ${duration - Math.floor(frameCount / FRAME_RATE_HZ)}s`;
-  const totalTime = (totalFrames / FRAME_RATE_HZ).toFixed(0);
-  const totalTimeString = `Total Time: ${totalTime}s`;
+  const timeRemaining = duration - Math.floor(frameCount / FRAME_RATE_HZ);
+  const timeRemainingString = `${Math.floor(timeRemaining / 60)}:${(timeRemaining % 60).toString().padStart(2, '0')}`;
+  const totalTime = Math.floor(totalFrames / FRAME_RATE_HZ);
+  const totalTimeString = `Total Time: ${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}`;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="flex flex-col items-center">
         <Image
           src={`data:image/svg+xml;utf8,${encodeURIComponent(image)}`}
-          width={200}
-          height={200}
+          width={250}
+          height={250}
           alt="Progress Image"
         />
-        <h1 className="text-2xl mt-4">
-          {isHighIntensity ? "High Intensity" : "Low Intensity"}
+        <h1 className="text-4xl mt-8 font-bold">
+          {timeRemainingString}
         </h1>
         <p className="text-xl mt-2">
-          {timeRemainingString}
+          {isHighIntensity ? "High Intensity" : "Low Intensity"}
         </p>
-        <p className="text-xl mt-2">
+        <p className="text-sm mt-4 text-gray-500">
           {totalTimeString}
         </p>
       </div>
