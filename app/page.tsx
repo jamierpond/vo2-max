@@ -1,15 +1,53 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useTimer } from "react-use-precision-timer";
+import { useRef } from "react";
+
 
 const FRAME_RATE_HZ = 30;
 const NUM_MS_PER_FRAME = 1000 / FRAME_RATE_HZ;
-const HIGH_INTENSITY_DURATION_SECONDS = 60;
-const LOW_INTENSITY_DURATION_SECONDS = 3 * 60;
+const HIGH_INTENSITY_DURATION_SECONDS = process.env.NODE_ENV === "development" ? 3 : 60;
+const LOW_INTENSITY_DURATION_SECONDS = process.env.NODE_ENV === "development" ? 3 : 3 * 60;
 const TOTAL_NUM_ROUNDS = 4;
-
 const NUM_FRAMES_HIGH_INTENSITY = HIGH_INTENSITY_DURATION_SECONDS * FRAME_RATE_HZ;
 const NUM_FRAMES_LOW_INTENSITY = LOW_INTENSITY_DURATION_SECONDS * FRAME_RATE_HZ;
+
+function AudioAlert({ someCondition: shouldPlay, isHighIntensity }: { someCondition: boolean, isHighIntensity: boolean }) {
+  const alertAudio = useRef<HTMLAudioElement | null>(null);
+  const bellAudio = useRef<HTMLAudioElement | null>(null);
+
+
+  useEffect(() => {
+    alertAudio.current = new Audio('/bell.mp3');
+    bellAudio.current = new Audio('/alert.mp3');
+  }, []);
+
+  const playAlert = () => {
+    if (!alertAudio.current || !bellAudio.current) {
+      alert("Audio not loaded");
+      return;
+    }
+    alertAudio.current?.pause();
+    bellAudio.current?.pause();
+    alertAudio.current.currentTime = 0;
+    bellAudio.current.currentTime = 0;
+    if (isHighIntensity) {
+      alertAudio.current?.play();
+    } else {
+      bellAudio.current?.play();
+    }
+  };
+
+  useEffect(() => {
+    if (shouldPlay) {
+      console.log("Playing alert");
+      playAlert();
+    }
+  }, [shouldPlay]);
+
+  return null;
+};
 
 function getFirePath(
   centerX: number,
@@ -93,23 +131,33 @@ export default function Home() {
   const [isHighIntensity, setIsHighIntensity] = useState(false);
   const [frameCount, setFrameCount] = useState(0);
   const [totalFrames, setTotalFrames] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(true);
   const [numRoundsCompleted, setNumRoundsCompleted] = useState(0);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
+  function onTranitionToHighIntensity() {
 
+  }
+
+  function onTransitionToLowIntensity() {
+    setNumRoundsCompleted((prevNumRoundsCompleted) => {
+      if (prevNumRoundsCompleted + 1 >= TOTAL_NUM_ROUNDS) {
+        return TOTAL_NUM_ROUNDS;
+      }
+      return prevNumRoundsCompleted + 1;
+    });
+  }
+
+  function timerCallback() {
     if (!isPaused) {
-      timer = setInterval(() => {
-        setFrameCount((prevFrameCount) => prevFrameCount + 1);
-        setTotalFrames((prevTotalFrames) => prevTotalFrames + 1);
-      }, NUM_MS_PER_FRAME);
+      setFrameCount((prevFrameCount) => prevFrameCount + 1);
+      setTotalFrames((prevTotalFrames) => prevTotalFrames + 1);
     }
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [isPaused]);
+  }
+  const timer = useTimer({ delay: NUM_MS_PER_FRAME }, timerCallback);
+  useEffect(() => {
+    timer.start();
+    return () => timer.stop();
+  }, []);
 
   useEffect(() => {
     const frames = isHighIntensity ? NUM_FRAMES_HIGH_INTENSITY : NUM_FRAMES_LOW_INTENSITY;
@@ -118,12 +166,9 @@ export default function Home() {
       setIsHighIntensity((prevIsHighIntensity) => !prevIsHighIntensity);
       setFrameCount(0);
       if (isHighIntensity) {
-        setNumRoundsCompleted((prevNumRoundsCompleted) => {
-          if (prevNumRoundsCompleted + 1 >= TOTAL_NUM_ROUNDS) {
-            return TOTAL_NUM_ROUNDS;
-          }
-          return prevNumRoundsCompleted + 1;
-        });
+        onTranitionToHighIntensity();
+      } else {
+        onTransitionToLowIntensity();
       }
     }
   }, [frameCount, isHighIntensity]);
@@ -171,6 +216,7 @@ export default function Home() {
         <p className="text-sm mt-4 text-gray-500">
           {totalTimeString}
         </p>
+        <AudioAlert someCondition={frameCount === 0 && !isPaused} isHighIntensity={!isHighIntensity} />
       </div>
     </main>
   );
