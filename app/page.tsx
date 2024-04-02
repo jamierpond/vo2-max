@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 
 const FRAME_RATE_HZ = 30;
 const NUM_MS_PER_FRAME = 1000 / FRAME_RATE_HZ;
-const HIGH_INTENSITY_DURATION = 10; // 1 minute in seconds
-const LOW_INTENSITY_DURATION = 2; // 3 minutes in seconds
+const HIGH_INTENSITY_DURATION_SECONDS = 60; // 1 minute in seconds
+const LOW_INTENSITY_DURATION_SECONDS = 3 * 60; // 3 minutes in seconds
 
-const NUM_FRAMES_HIGH_INTENSITY = HIGH_INTENSITY_DURATION * FRAME_RATE_HZ;
-const NUM_FRAMES_LOW_INTENSITY = LOW_INTENSITY_DURATION * FRAME_RATE_HZ;
+const NUM_FRAMES_HIGH_INTENSITY = HIGH_INTENSITY_DURATION_SECONDS * FRAME_RATE_HZ;
+const NUM_FRAMES_LOW_INTENSITY = LOW_INTENSITY_DURATION_SECONDS * FRAME_RATE_HZ;
 
 function getFirePath(
   centerX: number,
@@ -113,7 +113,7 @@ export default function Home() {
 
   const image = progressImageSvgString(progress, 200, 200, isHighIntensity);
 
-  const duration = isHighIntensity ? HIGH_INTENSITY_DURATION : LOW_INTENSITY_DURATION;
+  const duration = isHighIntensity ? HIGH_INTENSITY_DURATION_SECONDS : LOW_INTENSITY_DURATION_SECONDS;
   const timeRemainingString = `Time Remaining: ${duration - Math.floor(frameCount / FRAME_RATE_HZ)}s`;
   const totalTime = (totalFrames / FRAME_RATE_HZ).toFixed(0);
   const totalTimeString = `Total Time: ${totalTime}s`;
