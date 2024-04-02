@@ -86,21 +86,28 @@ function progressImageSvgString(
   return svg;
 }
 
+
 export default function Home() {
   const [progress, setProgress] = useState(0);
   const [isHighIntensity, setIsHighIntensity] = useState(false);
   const [frameCount, setFrameCount] = useState(0);
   const [totalFrames, setTotalFrames] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setFrameCount((prevFrameCount) => prevFrameCount + 1);
-      setTotalFrames((prevTotalFrames) => prevTotalFrames + 1);
-    }, NUM_MS_PER_FRAME);
+    let timer: NodeJS.Timeout;
+
+    if (!isPaused) {
+      timer = setInterval(() => {
+        setFrameCount((prevFrameCount) => prevFrameCount + 1);
+        setTotalFrames((prevTotalFrames) => prevTotalFrames + 1);
+      }, NUM_MS_PER_FRAME);
+    }
+
     return () => {
       clearInterval(timer);
     };
-  }, []);
+  }, [isPaused]);
 
   useEffect(() => {
     const frames = isHighIntensity ? NUM_FRAMES_HIGH_INTENSITY : NUM_FRAMES_LOW_INTENSITY;
@@ -111,6 +118,10 @@ export default function Home() {
     }
   }, [frameCount, isHighIntensity]);
 
+  const handleTap = () => {
+    setIsPaused((prevIsPaused) => !prevIsPaused);
+  };
+
   const image = progressImageSvgString(progress, 250, 250, isHighIntensity);
 
   const duration = isHighIntensity ? HIGH_INTENSITY_DURATION_SECONDS : LOW_INTENSITY_DURATION_SECONDS;
@@ -120,7 +131,10 @@ export default function Home() {
   const totalTimeString = `Total Time: ${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}`;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
+    <main
+      className="flex min-h-screen flex-col items-center justify-center p-8"
+      onTouchStart={handleTap}
+    >
       <div className="flex flex-col items-center">
         <Image
           src={`data:image/svg+xml;utf8,${encodeURIComponent(image)}`}
@@ -134,6 +148,9 @@ export default function Home() {
         <p className="text-xl mt-2">
           {isHighIntensity ? "High Intensity" : "Low Intensity"}
         </p>
+        {isPaused && (
+          <p className="text-2xl mt-4 text-red-500">Paused</p>
+        )}
         <p className="text-sm mt-4 text-gray-500">
           {totalTimeString}
         </p>
