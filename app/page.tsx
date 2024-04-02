@@ -90,10 +90,12 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [isHighIntensity, setIsHighIntensity] = useState(false);
   const [frameCount, setFrameCount] = useState(0);
+  const [totalFrames, setTotalFrames] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setFrameCount((prevFrameCount) => prevFrameCount + 1);
+      setTotalFrames((prevTotalFrames) => prevTotalFrames + 1);
     }, NUM_MS_PER_FRAME);
     return () => {
       clearInterval(timer);
@@ -113,6 +115,8 @@ export default function Home() {
 
   const duration = isHighIntensity ? HIGH_INTENSITY_DURATION : LOW_INTENSITY_DURATION;
   const timeRemainingString = `Time Remaining: ${duration - Math.floor(frameCount / FRAME_RATE_HZ)}s`;
+  const totalTime = (totalFrames / FRAME_RATE_HZ).toFixed(0);
+  const totalTimeString = `Total Time: ${totalTime}s`;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
@@ -128,6 +132,9 @@ export default function Home() {
         </h1>
         <p className="text-xl mt-2">
           {timeRemainingString}
+        </p>
+        <p className="text-xl mt-2">
+          {totalTimeString}
         </p>
       </div>
     </main>
