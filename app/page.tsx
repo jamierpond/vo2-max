@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 
 const FRAME_RATE_HZ = 30;
 const NUM_MS_PER_FRAME = 1000 / FRAME_RATE_HZ;
-const HIGH_INTENSITY_DURATION_SECONDS = 60; // 1 minute in seconds
-const LOW_INTENSITY_DURATION_SECONDS = 3 * 60; // 3 minutes in seconds
+const HIGH_INTENSITY_DURATION_SECONDS = 60;
+const LOW_INTENSITY_DURATION_SECONDS = 3 * 60;
+const TOTAL_NUM_ROUNDS = 4;
 
 const NUM_FRAMES_HIGH_INTENSITY = HIGH_INTENSITY_DURATION_SECONDS * FRAME_RATE_HZ;
 const NUM_FRAMES_LOW_INTENSITY = LOW_INTENSITY_DURATION_SECONDS * FRAME_RATE_HZ;
@@ -93,6 +94,7 @@ export default function Home() {
   const [frameCount, setFrameCount] = useState(0);
   const [totalFrames, setTotalFrames] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [numRoundsCompleted, setNumRoundsCompleted] = useState(0);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -115,10 +117,18 @@ export default function Home() {
     if (frameCount >= frames) {
       setIsHighIntensity((prevIsHighIntensity) => !prevIsHighIntensity);
       setFrameCount(0);
+      if (isHighIntensity) {
+        setNumRoundsCompleted((prevNumRoundsCompleted) => {
+          if (prevNumRoundsCompleted + 1 >= TOTAL_NUM_ROUNDS) {
+            return TOTAL_NUM_ROUNDS;
+          }
+          return prevNumRoundsCompleted + 1;
+        });
+      }
     }
   }, [frameCount, isHighIntensity]);
 
-  const handeClick = () => {
+  const handleClick = () => {
     setIsPaused((prevIsPaused) => !prevIsPaused);
   };
 
@@ -130,10 +140,14 @@ export default function Home() {
   const totalTime = Math.floor(totalFrames / FRAME_RATE_HZ);
   const totalTimeString = `Total Time: ${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}`;
 
+  const roundText = numRoundsCompleted === TOTAL_NUM_ROUNDS
+    ? "Workout Complete!"
+    : `Round ${numRoundsCompleted + 1} of ${TOTAL_NUM_ROUNDS}`;
+
   return (
     <main
       className="flex min-h-screen flex-col items-center justify-center p-8"
-      onClick={handeClick}
+      onClick={handleClick}
     >
       <div className="flex flex-col items-center">
         <Image
@@ -147,6 +161,9 @@ export default function Home() {
         </h1>
         <p className="text-xl mt-2">
           {isHighIntensity ? "High Intensity" : "Low Intensity"}
+        </p>
+        <p className="text-lg mt-4">
+          {roundText}
         </p>
         {isPaused && (
           <p className="text-2xl mt-4 text-red-500">Paused</p>
