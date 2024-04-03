@@ -1,29 +1,36 @@
 import { useEffect, useRef } from 'react';
 
 export function AudioAlert({ someCondition: shouldPlay, isHighIntensity }: { someCondition: boolean, isHighIntensity: boolean }) {
-  const alertAudio = useRef<HTMLAudioElement | null>(null);
-  const bellAudio = useRef<HTMLAudioElement | null>(null);
-
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const contextRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   useEffect(() => {
-    alertAudio.current = new Audio('/bell.mp3');
-    bellAudio.current = new Audio('/alert.mp3');
-  }, []);
+    const audioElement = new Audio(isHighIntensity ? '/alert.mp3' : '/bell.mp3');
+    audioRef.current = audioElement;
+
+    const context = new AudioContext();
+    contextRef.current = context;
+
+    const source = context.createMediaElementSource(audioElement);
+    sourceRef.current = source;
+
+    source.connect(context.destination);
+
+    return () => {
+      source.disconnect();
+      context.close();
+    };
+  }, [isHighIntensity]);
 
   const playAlert = () => {
-    if (!alertAudio.current || !bellAudio.current) {
+    if (!audioRef.current || !contextRef.current) {
       alert("Audio not loaded");
       return;
     }
-    alertAudio.current?.pause();
-    bellAudio.current?.pause();
-    alertAudio.current.currentTime = 0;
-    bellAudio.current.currentTime = 0;
-    if (isHighIntensity) {
-      alertAudio.current?.play();
-    } else {
-      bellAudio.current?.play();
-    }
+    audioRef.current.currentTime = 0;
+    contextRef.current.resume();
+    audioRef.current.play();
   };
 
   useEffect(() => {
@@ -35,5 +42,3 @@ export function AudioAlert({ someCondition: shouldPlay, isHighIntensity }: { som
 
   return null;
 };
-
-

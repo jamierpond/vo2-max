@@ -100,7 +100,7 @@ export default function Home() {
         <p className="text-sm mt-4 text-gray-500">
           {totalTimeString}
         </p>
-        <AudioAlert someCondition={frameCount === 0 && !isPaused} isHighIntensity={!isHighIntensity} />
+        <AudioAlert someCondition={frameCount === 0 && !isPaused} isHighIntensity={isHighIntensity} />
       </div>
     </main>
   );
